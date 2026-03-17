@@ -40,7 +40,7 @@
 ✅ Done
 
 🚀 Getting Started 快速开始：
-git clone https://github.com/your-username/your-repo.git
+git clone https://github.com/lecherme/voice-excel.git
 cd your-repo
 npm install
 npm run dev
