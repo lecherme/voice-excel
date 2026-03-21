@@ -1,9 +1,9 @@
+import { parseText } from "@/lib/parse";
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   const tokenRes = await fetch("http://localhost:3000/api/token");
   const { token } = await tokenRes.json();
-  console.log(token, '测试token')
   const formData = await req.formData();
   const file = formData.get("file") as File;
 
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   // 👉 转成 buffer
   const buffer = Buffer.from(await file.arrayBuffer());
   // 👉 调阿里云
-const url = `https://nls-gateway-cn-shanghai.aliyuncs.com/stream/v1/asr` +
+  const url = `https://nls-gateway-cn-shanghai.aliyuncs.com/stream/v1/asr` +
     `?appkey=${process.env.ALI_NLS_APP_KEY}` +
     `&format=pcm` +
     `&sample_rate=16000` +
@@ -31,13 +31,20 @@ const url = `https://nls-gateway-cn-shanghai.aliyuncs.com/stream/v1/asr` +
     },
     body: buffer,
   });
-
+    if (!res.ok) {
+    const text = await res.text();
+    console.error("阿里云错误:", text);
+    return Response.json({ error: "ASR failed" }, { status: 500 });
+    }
   const data = await res.json();
-
-  console.log("阿里云返回:", data);
-
+  let jsonResult = null
+  if(data.result){
+    jsonResult = await parseText(data.result);
+  }
+  console.log(jsonResult, 'jsonResult识别json')
   return Response.json({
-    text: data.result || "",
+    data: jsonResult,
     raw: data,
   });
+ 
 }
